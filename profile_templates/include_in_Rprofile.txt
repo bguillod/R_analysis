@@ -1,0 +1,54 @@
+## load packages that are too needed
+suppressPackageStartupMessages(library("fields"))
+
+
+## Override q() to not save by default.
+## Same as saying q("no")
+qn <- function(save = "no", status = 0, runLast = TRUE){
+    .Internal(quit(save, status, runLast))
+}
+
+## Ensure the time names will be in english
+Sys.setlocale("LC_TIME", "C")
+
+## create an 'postscript' function already parameterized
+ps.print <- function(file,
+                     height, width, ...) {
+  postscript(file = file,
+             paper = "special",
+             horizontal = FALSE,
+             height = height,
+             width = width,
+             ...)
+}
+
+ps.print.save <- function(file, height, width, save.vars, ...) {
+    save(list=save.vars, file=sub("eps$", "rdata", file))
+    ps.print(file=file, height=height, width=width, ...)
+}
+
+## added by bguillod
+## ----------------- GENERAL PATHS -----------------
+## basics
+root.path <- Sys.getenv("HOME")
+r.scripts.path <- Sys.getenv("r_scripts")
+r.generics.path <- Sys.getenv("r_generics")
+r.locals.path <- Sys.getenv("r_locals")
+r.analysis.path <- Sys.getenv("r_analysis")
+figs.path <- Sys.getenv("r_figures")
+## script paths - generics
+r.infos.path <- file.path(r.generics.path, "0_loadInfos")
+loadData.path <- file.path(r.generics.path, "1_loadData")
+compute.path <- file.path(r.generics.path, "2_computations")
+plotFuncs.path <- file.path(r.generics.path, "3_plotFuncs")
+mapFuncs.path <- file.path(r.generics.path, "4_mapFuncs")
+colFuncs.path <- file.path(r.generics.path, "5_cols")
+## scripts paths - locals
+loadData.localpath <- file.path(r.locals.path, "1_load")
+
+
+rprofile.vars <- ls()
+rprofile.vars <- ls()
+
+print("The following variables have been loaded from ~/.Rprofile (are also listed anytime in 'rprofile.vars' :")
+print(rprofile.vars)

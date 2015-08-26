@@ -1,0 +1,22 @@
+
+# R paths -- add to all systems
+r_scripts=$HOME/scripts/R_general
+r_generics=$r_scripts/R_generic_funcs
+r_locals=$r_scripts/local_funcs
+r_analysis=$HOME/scripts/Analysis
+r_figures=$HOME/figures
+export rscripts r_generics r_locals r_analysis r_figures
+rfigs_path() {
+    test=$1
+    test=${test:0:2}
+    if [ $# -eq 0 ]; then
+        echo $r_figures
+    elif [ "$1" = "." ]; then
+        temp=`pwd`
+        echo ${temp/$r_analysis/$r_figures}
+    elif [ "$test" = ".." ]; then
+        echo \*\* ERROR \*\* not working for relative paths \*\*\*\*\*
+    else
+        echo ${1/$r_analysis/$r_figures}
+    fi
+}
