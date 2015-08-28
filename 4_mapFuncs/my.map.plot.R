@@ -63,7 +63,7 @@ my.map.plot <- function(z,x,y,
       lab.breaks <- breaks
     }
     if (missing(col)) {
-        source(paste("/ouce-home/staff/cenv0433/scripts/R_general/EXAMPLES/my.tim.colors.R", sep="/"))
+        source(file.path(colFuncs.path, "my.tim.colors.R"))
         if (type == "diff") {
           col <- my.tim.colors
         } else {

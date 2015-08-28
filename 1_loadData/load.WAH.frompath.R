@@ -17,7 +17,7 @@ load.WAH.frompath <- function(path.in,
     require(ncdf4.helpers)
     
     if (FALSE) {
-        source("/ouce-home/staff/cenv0433/scripts/R_general/1_loadData/get.list.files.R")
+        source(file.path(loadData.path, "get.list.files.R"))
         experiment <- "fredi"
         years <- "all"
         umid <- "all"

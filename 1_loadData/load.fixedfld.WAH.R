@@ -14,7 +14,7 @@ load.fixedfld.WAH <- function(experiment="fredi",
   require(ncdf4.helpers)
 
   if (FALSE) {
-      source("/ouce-home/staff/cenv0433/scripts/general_funcs/1_loadData/load.fixedfld.WAH.R")
+      source(file.path(loadData.path, "load.fixedfld.WAH.R"))
       experiment <- "fredi"
       var <- "THETA_PWP"
       rcm <- F
@@ -22,7 +22,7 @@ load.fixedfld.WAH <- function(experiment="fredi",
       ## test <- experiment
       require(fields)
       rcm.pwp <- load.fixedfld.WAH(experiment, var, rcm)
-      source("/ouce-home/staff/cenv0433/scripts/general_funcs/4_mapFuncs/my.map.plot.R")
+      source(file.path(mapFuncs.path, "my.map.plot.R"))
       my.map.plot(rcm.pwp, type="abs", axes=F)
 
       ## plot all three variables for regional and global model
