@@ -61,7 +61,7 @@ my.map.plot <- function(z,x,y,
         breaks <- pretty(z)
       }
       lab.breaks <- breaks
-    }
+  }
     if (missing(col)) {
         source(file.path(colFuncs.path, "my.tim.colors.R"))
         if (type == "diff") {
@@ -107,7 +107,10 @@ my.map.plot <- function(z,x,y,
     ## image.plot(x,y,zval, col=c(colbar, grey.col), breaks=c(brk, length(breaks)+1.5),
     ##            axis.args=list(at=axat, labels=axlabs),
     ##            legend.args=list(col=colbar, text="TFS", breaks=brk))
-    par(plt=bigplot)
+    if (!is.null(list(...)$add)) {
+        new <- list(...)$add
+    }
+    par(plt=bigplot, new=new)
     image(x,y,zval, col=c(colbar, grey.col), breaks=brk.image, axes = axes, ...)
     box(lwd=box.lwd)
     if (map.add == "continents") {
