@@ -111,7 +111,7 @@ my.map.plot <- function(z,x,y,
         new <- list(...)$add
     }
     par(plt=bigplot, new=new)
-    image(x,y,zval, col=c(colbar, grey.col), breaks=brk.image, axes = axes, ...)
+    image(x,y,zval, col=c(colbar, grey.col), breaks=brk.image, axes = axes, xlab="", ylab="", ...)
     box(lwd=box.lwd)
     if (map.add == "continents") {
         require(maps)
