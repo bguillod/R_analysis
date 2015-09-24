@@ -3,8 +3,11 @@ load.WAH.frompath <- function(path.in,
                               months = "all",
                               lon.range,
                               lat.range,
+                              rlon.range,
+                              rlat.range,
                               daily = F,
-                              rcm=F) {
+                              rcm=F,
+                              region=NA) {# e.g. region="eu_50km"
 
     ## ---------------------------------------------------------------------
     ## ---------------------------------------------------------------------
@@ -58,32 +61,87 @@ load.WAH.frompath <- function(path.in,
 
     }
 
+    ## which months?
+    if (any(months == "all")) months <- c(12, 1:11)
+    
     ## get useful values for file name
-    folder.name <- tail(strsplit(path.in, "/")[[1]], 1)
-    umid <- substr(folder.name, 12, 15)
-    year <- substr(folder.name, 17, 20)
+    region.short <- strsplit(region, "_")[[1]][1]
+    nchar.reg <- nchar(region.short)
+    folder.name <- basename(path.in)
+    umid <- substr(folder.name, 10+nchar.reg, 13+nchar.reg)
+    year <- substr(folder.name, 15+nchar.reg, 18+nchar.reg)
     source(file.path(r.infos.path, "decade.letter.R"))
     dec <- sapply(as.numeric(year)+c(0,1), decade.letter)
     un <- (as.numeric(year)+c(0,1))%%10
+
+    ## get dimensions and file name
     source(file.path(r.infos.path, "cpdn.dims.R"))
+    source(file.path(r.infos.path, "degree.adjustRange.R"))
     if (!rcm) {
         fil <- "ma.pc"
         dims.gcm <- cpdn.dims("HadAM3P")
-        lon.gcm <- dims.gcm$lon
-        lat.gcm <- dims.gcm$lat
+        lat.model <- dims.gcm$lat
+        if (missing(lon.range) | missing(lat.range)) {
+            if (!(missing(rlon.range) & missing(rlat.range))) {
+                stop("** ERROR ** RCM=F but only rotated coordinates range is specified *****")
+            }
+            lon.in <- 1:length(lon.model)
+            lat.in <- 1:length(lat.model)
+        } else {
+            lon.in <- (findInterval(lon.model, lon.range) == 1)
+            lat.in <- (findInterval(lat.model, lat.range) == 1)
+        }
+        lon.out <- lon.model[lon.in]
+        if (!all(lon.out == cummax(lon.out))) {
+            stop("** only works for continuous longitude in GCM **")
+        }
+        lat.out <- lat.model[lat.in]
+        invlat <- !all(lat.out == cummax(lat.out))
+        templat <- if (invlat) rev(lat.out) else lat.out
+        nlon <- sum(lon.in)
+        nlat <- sum(lat.in)
+        data.out <- array(dim=c(nlon, nlat, length(months)))
+        data.out <- put.atts(to=data.out,
+                             atts=list(lon=lon.out,
+                                 lat=templat,
+                                 grid.type=dims.gcm$grid.type))
     } else if (daily) {
-        stop("** ERROR ** only for GCM in this script *****")
+        stop("** ERROR ** only for GCM or monthly in this script *****")
         fil <- "ga.pd"
     } else {
-        stop("** ERROR ** only for GCM in this script *****")
-       fil <- "ga.pe"
+        fil <- "ga.pe"
+        dims.rcm <- cpdn.dims(paste("HadRM3P", region, sep="_"))
+        lon.model <- dims.rcm$rlon
+        lat.model <- dims.rcm$rlat
+        if (missing(rlon.range) | missing(rlat.range)) {
+            if (!(missing(lon.range) & missing(lat.range))) {
+                stop("** ERROR ** RCM=T but only non-rotated coordinates range specified *****")
+            }
+            lon.in <- rep(TRUE, length(lon.model))
+            lat.in <- rep(TRUE, length(lat.model))
+        } else {
+            lon.in <- (findInterval(lon.model, rlon.range) == 1)
+            lat.in <- (findInterval(lat.model, rlat.range) == 1)
+        }
+        lon.out <- lon.model[lon.in]
+        lat.out <- lat.model[lat.in]
+        invlat <- !all(lat.out == cummax(lat.out))
+        rlat <- if (invlat) rev(lat.out) else lat.out
+        nlon <- sum(lon.in)
+        nlat <- sum(lat.in)
+        
+        data.out <- array(dim=c(nlon, nlat, length(months)))
+        data.out <- put.atts(to=data.out,
+                             atts=list(rlon=lon.out,
+                                 rlat=rlat,
+                                 plon=dims.rcm$plon,
+                                 plat=dims.rcm$plat,
+                                 lon = dims.rcm$lon[lon.in, rev(which(lat.in))],
+                                 lat = dims.rcm$lat[lon.in, rev(which(lat.in))],
+                                 grid.type=dims.rcm$grid.type))
     }
 
     ## loop on months
-    if (any(months == "all")) months <- 1:12
-    nlon <- sum(lon.gcm>=lon.range[1] & lon.gcm<=lon.range[2])
-    nlat <- sum(lat.gcm>=lat.range[1] & lat.gcm<=lat.range[2])
-    data.out <- array(dim=c(nlon, nlat, length(months)))
     for (m in 1:length(months)) {
         ii <- ifelse(months[m]==12, 1, 2)
         ## file name
@@ -93,21 +151,22 @@ load.WAH.frompath <- function(path.in,
         ## load data and dimensions
         if (!file.exists(file.in)) next
         nc <- nc_open(file.in)
-        lon <- ncvar_get(nc, ifelse(rcm, "x", "longitude0"))
-        if (any(lon != lon.gcm)) stop("** ERROR ** unexpected 'lon' dimension *****")
-        lat <- ncvar_get(nc, ifelse(rcm, "y", "latitude0"))
-        if (any(lat != lat.gcm)) stop("** ERROR ** unexpected 'lat' dimension *****")
-        lon.in <- which(lon>=lon.range[1] & lon<=lon.range[2])
-        lat.in <- which(lat>=lat.range[1] & lat<=lat.range[2])
+#        lon <- ncvar_get(nc, ifelse(rcm, "x", "longitude0"))
+        lon <- ncvar_get(nc,  "longitude0")
+        if (any(abs(lon-lon.model) > abs(mean(diff(lon.model))/10))) stop("** ERROR ** unexpected 'lon' dimension *****")
+        lat <- ncvar_get(nc, "latitude0")
+        if (any(abs(lat-lat.model) > abs(mean(diff(lat.model))/10))) stop("** ERROR ** unexpected 'lat' dimension *****")
         dat <- ncvar_get(nc, var,
                          start=c(lon.in[1], lat.in[1],1,1),
                          count=c(length(lon.in), length(lat.in),-1, -1))
         nc_close(nc)
-        data.out[,,m] <- dat
+        if (invlat) {
+            data.out[,nlat:1,m] <- dat
+        } else {
+            data.out[,,m] <- dat
+        }
     }
     
-    attr(data.out, "lon") <- lon
-    attr(data.out, "lat") <- lat
     attr(data.out, "month") <- months
 
     return(data.out)
