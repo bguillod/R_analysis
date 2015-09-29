@@ -27,6 +27,7 @@ ps.print.save <- function(file, height, width, save.vars, ...) {
     ps.print(file=file, height=height, width=width, ...)
 }
 
+
 ## added by bguillod
 ## ----------------- GENERAL PATHS -----------------
 ## basics
@@ -45,7 +46,10 @@ mapFuncs.path <- file.path(r.generics.path, "4_mapFuncs")
 colFuncs.path <- file.path(r.generics.path, "5_cols")
 ## scripts paths - locals
 loadData.localpath <- file.path(r.locals.path, "1_load")
-
+## load useful functions
+source(file.path(r.infos.path, "save.func.args.R"))
+source(file.path(r.infos.path, "save.plot.args.R"))
+source(file.path(r.infos.path, "load.func.args.R"))
 
 rprofile.vars <- ls()
 rprofile.vars <- ls()

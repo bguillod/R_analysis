@@ -7,7 +7,9 @@ load.WAH.frompath <- function(path.in,
                               rlat.range,
                               daily = F,
                               rcm=F,
-                              region=NA) {# e.g. region="eu_50km"
+                              region=NA,
+                              subfolders="",
+                              filename="UmidFi.leDYMon.nc") {# e.g. region="eu_50km"
 
     ## ---------------------------------------------------------------------
     ## ---------------------------------------------------------------------

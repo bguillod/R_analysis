@@ -5,7 +5,7 @@ my.plot.map <- function (fld, ptype = "image", legend = ((ptype == "image") |
                          nbreaks = 12, nlevels = nbreaks, breaks, levels, col = ifelse(ptype == 
                                                                                            "contour", par("fg"), "cool2warm.colors"), density = NULL, 
                          angle = 45, slwd = par("lwd"), mar.leg = c(3, 0, 2, 4), mar.plot = c(3, 
-                                                                                     2, 2, 1), new=FALSE, ...) 
+                                                                                     2, 2, 1), new=FALSE, main, cex.main, ...) 
 {
     if (attr(dev.cur(), "names") == "null device") {
         stop("** plotting impossible in 'null device' (blocked to avoid loosing ages) *****")
@@ -176,5 +176,8 @@ my.plot.map <- function (fld, ptype = "image", legend = ((ptype == "image") |
     }
     else {
         stop("Invalid entry for argument ptype:", ptype)
+    }
+    if (!missing(main)) {
+        title(main, cex.main=cex.main)
     }
 }
