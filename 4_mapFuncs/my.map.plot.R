@@ -26,8 +26,14 @@ my.map.plot <- function(z,x,y,
 
     require(fields)
     ## order x and y
-    if (missing(x)) x <- attr(z, "lon") 
-    if (missing(y)) y <- attr(z, "lat") 
+    if (missing(x)) {
+        x <- attr(z, "lon")
+        if (is.null(x)) x <- 1:dim(z)[1]
+    }
+    if (missing(y)) {
+        y <- attr(z, "lat")
+        if (is.null(y)) y <- 1:dim(z)[2]
+    }
     z  <- z[order(x), order(y)]
     x  <- sort(x)
     y <- sort(y)
