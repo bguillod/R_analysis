@@ -9,13 +9,13 @@ my.image.plot <- function(z,x,y, add=FALSE, breaks=NULL, nlevel = 64, col = tim.
                           grey.is=is.na(z),
                           white.is=array(F, dim=dim(z)),
                           grey.col="grey",
-                          use.plt = TRUE,
                           ...) {
 
     if (FALSE) {
         source(file.path(r.generics.path, "4_mapFuncs/my.image.plot.R"))
     }
 
+    print(bigplot)
     old.par <- par(no.readonly = TRUE)
     if (missing(x)) {
         x <- attr(z, "lon")
@@ -49,17 +49,10 @@ my.image.plot <- function(z,x,y, add=FALSE, breaks=NULL, nlevel = 64, col = tim.
     ## temp <- do.call(imageplot.setup, imageplot.setup.args)
     temp <- imageplot.setup(add = add, legend.shrink = legend.shrink, 
         legend.width = legend.width, legend.mar = legend.mar, 
-                            horizontal = horizontal, bigplot = bigplot, smallplot = smallplot)
-    if (use.plt) {
-        smallplot <- temp$smallplot
-        bigplot <- temp$bigplot
-    } else {
-        if (!legend.only & add.legend) {
-            stop("** ERROR ** 'use.plt'=FALSE but both legend and plot required *****")
-        }
-        bigplot <- NULL
-        smallplot <- temp$smallplot
-    }
+        horizontal = horizontal, bigplot = bigplot, smallplot = smallplot)
+    smallplot <- temp$smallplot
+    bigplot <- temp$bigplot
+    print(bigplot)
     ## START: CONVERT VALUES TO FIT
     zval <- z
     colbar <- col(length(breaks)+1)
@@ -75,6 +68,7 @@ my.image.plot <- function(z,x,y, add=FALSE, breaks=NULL, nlevel = 64, col = tim.
                 par(plt = bigplot)
             }
         }
+        print(par()$plt)
         if (!info$poly.grid) {
             image(..., z=zval, x=x, y=y, breaks = brk.image, add = add, col = c(colbar, grey.col), 
                        axes=FALSE, xlab="", ylab="")
@@ -89,12 +83,10 @@ my.image.plot <- function(z,x,y, add=FALSE, breaks=NULL, nlevel = 64, col = tim.
     }
     if (add.legend) {
         if ((smallplot[2] < smallplot[1]) | (smallplot[4] < smallplot[3])) {
-            if (use.plt) {
-                par(old.par)
-            }
+            par(old.par)
             stop("plot region too small to add legend\n")
         }
-        if (legend.only & !add) {
+        if (legend.only) {
             plot(1, type="n", axes=F, xlab="", ylab="")
         }
         if (is.null(legend.args$text)) legend.args$text <- ""
@@ -126,18 +118,17 @@ my.image.plot <- function(z,x,y, add=FALSE, breaks=NULL, nlevel = 64, col = tim.
     ## if (is.null(graphics.reset)) graphics.reset <- FALSE
     ## print(graphics.reset)
     ## print(add)
-    if (use.plt) {
-        if (graphics.reset | add) {
-            par(old.par)
-            par(mfg = mfg.save, new = FALSE)
-            invisible()
-        }
-        else {
-            par(big.par)
-            par(plt = big.par$plt, xpd = FALSE)
-            par(mfg = mfg.save, new = FALSE)
-            invisible()
-        }
+    if (graphics.reset | add) {
+        par(old.par)
+        par(mfg = mfg.save, new = FALSE)
+        invisible()
     }
+    else {
+        par(big.par)
+        par(plt = big.par$plt, xpd = FALSE)
+        par(mfg = mfg.save, new = FALSE)
+        invisible()
+    }
+
 
 }
