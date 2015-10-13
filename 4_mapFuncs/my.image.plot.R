@@ -25,7 +25,7 @@ my.image.plot <- function(z,x,y, add=FALSE, breaks=NULL, nlevel = 64, col = tim.
         y <- attr(z, "lat")
         if (is.null(y)) y <- 1:dim(z)[2]
     }
-    info <- imagePlotInfo(..., z=z, x=x, y=y, breaks = breaks, nlevel=nlevel)
+    info <- imagePlotInfo(..., x=x, y=y, z=z, breaks = breaks, nlevel=nlevel)
     ## if (missing(breaks)) {
     breaks <- info$breaks
     ## }
