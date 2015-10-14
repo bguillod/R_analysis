@@ -1,4 +1,4 @@
-my.image.plot <- function(z,x,y, add=FALSE, breaks=NULL, nlevel = 64, col = tim.colors,
+my.image.plot <- function(z,x,y, add=FALSE, breaks=NULL, nlevel = 15, col = tim.colors,
                           horizontal = FALSE,legend.shrink = 0.9, legend.width = 1.2, 
                           legend.mar = ifelse(horizontal, 3.1, 5.1), legend.lab = NULL, 
                           legend.line = 2, graphics.reset = FALSE, bigplot = NULL, 
@@ -27,7 +27,11 @@ my.image.plot <- function(z,x,y, add=FALSE, breaks=NULL, nlevel = 64, col = tim.
     }
     info <- imagePlotInfo(..., x=x, y=y, z=z, breaks = breaks, nlevel=nlevel)
     ## if (missing(breaks)) {
-    breaks <- info$breaks
+    if (is.null(breaks)) {
+        breaks <- pretty(z, nlevel)
+        breaks <- breaks[-c(1, length(breaks))]
+    }
+##    breaks <- info$breaks
     ## }
     if (verbose) {
         print(info)
