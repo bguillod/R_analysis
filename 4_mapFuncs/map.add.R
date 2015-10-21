@@ -8,9 +8,11 @@ map.add <- function(grid.atts, database="world", add=TRUE, ...) {
     ## function to get the right range of longitude
     get.lonrange <- function(lon) {
         lonlim <- range(lon, na.rm=TRUE)
-        panel.map <- findInterval(lonlim+c(1,-1), seq(-180, 360, by=180))
-        if (any(panel.map < 1) | any(panel.map > 3) | (diff(panel.map) > 1)) {
+        panel.map <- findInterval(lonlim+c(1,-1), seq(-180, 540, by=180))
+        if (any(panel.map < 1) | any(panel.map > 4) | (diff(panel.map) > 1)) {
             stop("** lon range cannot be determined *****")
+        } else if (any(panel.map == 4)) {
+            lon.range <- c(180, 540)
         } else if (any(panel.map == 3)) {
             lon.range <- c(0, 360)
         } else {
@@ -38,6 +40,7 @@ map.add <- function(grid.atts, database="world", add=TRUE, ...) {
         lonlim <- range(lims$lon)
         latlim <- range(lims$lat)
         lonlat.range <- get.lonrange(lonlim)
+#        x.range <- lonlat.range
         x.range <- get.lonrange(x)
     } else {
         stop("** ERROR ** unexpected value in 'grid.atts$grid.type' *****")

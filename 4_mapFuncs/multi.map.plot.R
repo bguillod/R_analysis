@@ -15,6 +15,7 @@ multi.map.plot <- function(z, x, y,
     ## load required functions and packages
     source(file.path(r.generics.path, "4_mapFuncs/my.image.plot.R"))
     library(geocors)
+    library(fields)
 
     ## convert z to a list
     if (!is.list(z)) {
@@ -40,6 +41,7 @@ multi.map.plot <- function(z, x, y,
     if (missing(x)) {
         x <- get.grid.atts(z[[1]], what="grid.cors")[[1]]
         if (is.null(x)) x <- 1:dim(z)[1]
+        
     }
     if (missing(y)) {
         y <- get.grid.atts(z[[1]], what="grid.cors")[[2]]

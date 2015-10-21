@@ -43,7 +43,7 @@ for (i in 22:length(new.pkgs)) {
 
 
 ## INSTALL OWN PACKAGES (CHRIGEL)
-new.own.pkgs <- c("trend_1.5.1", "gevXgpd_1.4.2", "geocors_1.2.8", "plotmap_2.3.7", "pcaXcca_1.4.1", "ACWD_2.0.0")
+new.own.pkgs <- c("trend_1.5.1", "gevXgpd_1.4.2", "geocors_1.2.8", "plotmap_2.3.7", "pcaXcca_1.4.1", "ACWD_2.0.0", "sm_2.2-5.4", "vioplot_0.2")
 
 for (i in 1:length(new.own.pkgs)) {
     tryCatch({install.packages(file.path(owndir, paste0(new.own.pkgs[i], ".tar.gz")),
