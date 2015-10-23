@@ -187,7 +187,7 @@ violin.plot <- function(datas,...,range=1.5,h=NULL,ylim=NULL,names=NULL, horizon
       
     }
 
-            axis.tits <- plot.args[c("xlab", "ylab")]
+            axis.tits <- plot.args[c("xlab", "ylab", "main")]
             do.call(title, axis.tits)
     
     invisible (list( upper=upper, lower=lower, median=med, q1=q1, q3=q3))

@@ -20,3 +20,37 @@ rfigs_path() {
         echo ${1/$r_analysis/$r_figures}
     fi
 }
+
+# aliases
+#alias R='R3.1.3'
+alias lsl='echo; ls *; echo; '
+alias la='ls -a'
+alias ll='ls -lh'
+alias topu='top -u $USER'
+alias topc='top -c -u $USER'
+alias job='jobs -l'
+# apps commands
+alias xml2table='$HOME/bin/cpdn-utils/xml2table.Rscript'
+alias ncplot='$HOME/bin/cpdn-utils/ncplot/ncplot.Rscript'
+
+# functions
+em() {
+    emacs $1 >/dev/null 2>&1 &
+}
+
+ncvars() {
+    ncdump -h $1 | grep -P -v '\t\t'
+}
+
+epstopdfrot90() {
+    epstopdf --outfile=temp_epstopdf.pdf $1
+    t="${1%.eps}.pdf"
+#    tt=`expr substr $1 1 $t`
+    pdftk temp_epstopdf.pdf cat 1-endE output $t
+    rm temp_epstopdf.pdf
+}
+
+
+alias clean='find . \( -name ".*%" -o -name "*%" -o -name "*~" -o -name ".Rhistory" -o -name ".Rdata" \) -print -exec rm {} \;'
+alias clean_test='find . \( -name ".*%" -o -name "*%" -o -name "*~" -o -name ".Rhistory" -o -name ".Rdata" \) -print -exec ls {} \;'
+xset b off >&/dev/null
