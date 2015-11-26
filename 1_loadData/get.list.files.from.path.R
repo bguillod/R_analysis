@@ -5,16 +5,18 @@ get.list.files.from.path <- function(files.data.path,
     ## ---------------------------------------------------------------------
     ## ---------------------------------------------------------------------
     ## function to get a data frame with years, umid and files from WAH runs
-    ## modified 24/11/2015: now works with both raw cpdn output and output extract with Neil's wah_extract.py script (automatically detects which one it is)
+    ## modified 24/11/2015: now works with both raw cpdn output and output extracted with Neil's wah_extract.py script (automatically detects which one it is)
     ## 
     ## ---------------------------------------------------------------------
     ## ---------------------------------------------------------------------
 
     if (FALSE) {
 
+        source(file.path(loadData.path, "get.list.files.from.path.R"))
+        
         files.data.path <- "/data/ouce-cpdn/nmassey/wah_data/OSTIA_global/2011"
         test <- get.list.files.from.path(files.data.path)
-
+c
         files.data.path <- "/data/ouce-cpdn/nmassey/wah_data/OSTIA_global"
         test <- get.list.files.from.path(files.data.path)
         test <- get.list.files.from.path(files.data.path, year="2011")
@@ -54,7 +56,7 @@ get.list.files.from.path <- function(files.data.path,
             file.dirs <- rbind(file.dirs, file.dirs.add)
         }
     } else if (all(substr(fnames, 1, 7) == "hadam3p")) {
-        years.subdit <- FALSE
+        years.subdir <- FALSE
         file.dirs <- data.frame(dirs = files.data.path,
                                 fnames = fnames,
                                 stringsAsFactors=FALSE)
