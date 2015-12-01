@@ -18,6 +18,7 @@ load.WAH.from.path <- function(paths.in,
 
     require(ncdf4)
     require(ncdf4.helpers)
+    library(plotmap)
     
     if (FALSE) {
         
@@ -30,7 +31,7 @@ load.WAH.from.path <- function(paths.in,
         var <- "field16"
         months <- "all"
         daily <- FALSE
-        rcm <- FALSE
+        rcm <- TRUE
         region <- NA
         
     }
@@ -55,7 +56,7 @@ load.WAH.from.path <- function(paths.in,
             fil <- "ga.pe"
         }
         file.list <- list()
-        for (i in 1:length(run.path)) {
+        for (i in 1:nrow(run.path)) {
             file.list[[i]] <- vector(mode="character", length=length(months))
             for (m in 1:length(months)) {
                 year.m <- as.numeric(run.path$year[i])+ifelse(months[m]==12, 0, 1)
@@ -76,7 +77,8 @@ load.WAH.from.path <- function(paths.in,
     files.names <- get.files.names(paths.in, var=var, months=months, daily=daily, rcm=rcm, cpdn.data.type=cpdn.data.type)
 
 
-    get.data.str <- function(file.in, var) {
+    get.data.file.str <- function(file.in,
+                             var) {
         ## load a data sample grid information
         nc <- nc_open(file.in)
         ## data size
@@ -86,10 +88,12 @@ load.WAH.from.path <- function(paths.in,
         y <- nc.get.dim.for.axis(nc, var, "Y")
         z <- nc.get.dim.for.axis(nc, var, "Z")
         t <- nc.get.dim.for.axis(nc, var, "T")
-        if (length(dim(dat)) != ifelse(is.na(z[1]), 3, 4)) stop("** ERROR ** no 'z' coordinate but more than 3 dimensions *****")
+        if (length(dim(dat)) != (2+!is.na(z[1])+!(t$len==1))) stop("** ERROR ** no 'z' coordinate but more than 3 dimensions *****")
+        dim.names <- c("X", "Y", "Z", "T")[c(TRUE, TRUE, !is.na(z[1]), !(t$len==1))]
         ## rotated grid?
         grid.mapping <- ncatt_get(nc, var, "grid_mapping")
         if (grid.mapping$hasatt) {
+            ## rotated grid
             if (ncatt_get(nc,grid.mapping$value, "grid_mapping_name")$value != "rotated_latitude_longitude") stop("** ERROR ** 'grid_mapping' attr exists but not 'rotated_latitude_longitude' *****")
             grid.type <- "rotpol"
             plat <- ncatt_get(nc,grid.mapping$value, "grid_north_pole_latitude")$value
@@ -99,207 +103,153 @@ load.WAH.from.path <- function(paths.in,
             lat <- ncvar_get(nc, names(dat)[2])
             rlon <- x$vals
             rlat <- y$vals
-            grid.args <- list(grid.type=grid.type, plon=plon, plat=plat,
-                              rlon=rlon, rlat=rlat, lon=lon, lat=lat)
             rm(dat, grid.mapping)
+            grid.args <- list(grid.type=grid.type, rlon=x$vals, rlat=y$vals, plon=plon, plat=plat, lon=lon, lat=lat)
         } else {
+            ## non-rotated grid
             grid.type <- "lonlat"
             grid.args <- list(grid.type=grid.type, lon=x$vals, lat=y$vals)
         }
         nc_close(nc)
         if (!is.na(z[1])) {
-            grid.args <- c(grid.args, z=z$vals)
-            output <- list(dim=dim(dat), x=x$vals, y=y$vals, z=z$vals, grid.args=grid.args)
+            grid.args <- c(grid.args)
+            output <- list(dim=dim(dat), dim.names=dim.names, x=x$vals, y=y$vals, z=z$vals, t=t$vals, grid.args=grid.args)
         } else {
-            output <- list(dim=dim(dat), x=x$vals, y=y$vals, grid.args=grid.args)
+            output <- list(dim=dim(dat), dim.names=dim.names, x=x$vals, y=y$vals, t=t$vals, grid.args=grid.args)
         }
         return(output)
     }
-    data.str <- get.data.str(files.names[[1]][1], var)
-    if (rcm & data.str$grid.args$grid.type!="rotpol") stop("** ERROR ** region but grid type is not rotpol *****")
+    ## data.str <- get.data.file.str(files.names[[1]][1], var)
+    ## if (rcm & data.str$grid.args$grid.type!="rotpol") stop("** ERROR ** region but grid type is not rotpol *****")
 
 
 
+    get.loadArgs <- function(files.names,
+                             lon.range,
+                             lat.range,
+                             rlon.range,
+                             rlat.range) {
+        ## data shape in files
+        in.data.str <- get.data.file.str(files.names[[1]][1], var)
+        if (rcm & in.data.str$grid.args$grid.type!="rotpol") stop("** ERROR ** region but grid type is not rotpol *****")
+        ## needed functions
+        source(file.path(r.infos.path, "degree.adjustRange.R"))
+        ## rotated coords?
+        if (in.data.str$grid.args$grid.type == "rotpol") {
+            if (missing(rlon.range) | missing(rlat.range)) {
+                if (!(missing(lon.range) & missing(lat.range))) {
+                    stop("** ERROR ** RCM=T but only non-rotated coordinates range specified *****")
+                }
+                x.in <- rep(TRUE, length(in.data.str$x))
+                y.in <- rep(TRUE, length(in.data.str$y))
+            } else {
+                x.in <- (findInterval(in.data.str$x, rlon.range) == 1)
+                y.in <- (findInterval(in.data.str$y, rlat.range) == 1)
+            }
+            rlon.out <- in.data.str$x[x.in]
+            rlat.out <- in.data.str$y[y.in]
+            x.order <- order(degree.adjustRange(rlon.out,range.out=c(-180,180)))
+            y.order <- order(rlat.out)
+            rlon.out <- rlon.out[x.order]
+            rlat.out <- rlat.out[y.order]
+            lon.out <- in.data.str$grid.args$lon[which(x.in)[x.order], which(y.in)[y.order]]
+            lat.out <- in.data.str$grid.args$lat[which(x.in)[x.order], which(y.in)[y.order]]
+            grid.args <- list(grid.type=in.data.str$grid.args$grid.type,
+                              plon=in.data.str$grid.args$plon, plat=in.data.str$grid.args$plat,
+                              rlon=rlon.out, rlat=rlat.out,
+                              lon=lon.out, lat=lat.out)
+            dims <- c(length(rlon.out), length(rlat.out), in.data.str$dim[-(1:2)])
+            load.args <- list(dims=dims, dim.names=in.data.str$dim.names, x.in=x.in, y.in=y.in,
+                              x.order=x.order, y.order=y.order,
+                              grid.args=grid.args)
+        } else if (in.data.str$grid.args$grid.type == "lonlat") {
+            if (missing(lon.range) | missing(lat.range)) {
+                if (!(missing(rlon.range) & missing(rlat.range))) {
+                    stop("** ERROR ** RCM=F but only rotated coordinates range specified *****")
+                }
+                x.in <- rep(TRUE, length(in.data.str$x))
+                y.in <- rep(TRUE, length(in.data.str$y))
+            } else {
+                x.in <- (findInterval(in.data.str$x, lon.range) == 1)
+                y.in <- (findInterval(in.data.str$y, lat.range) == 1)
+            }
+            lon.out <- in.data.str$x[x.in]
+            lat.out <- in.data.str$y[y.in]
+            x.order <- order(degree.adjustRange(lon.out,range.out=c(-180,180)))
+            y.order <- order(lat.out)
+            lon.out <- lon.out[x.order]
+            lat.out <- lat.out[y.order]
+            grid.args <- list(grid.type=in.data.str$grid.args$grid.type,
+                              lon=lon.out, lat=lat.out)
+            dims <- c(length(lon.out), length(lat.out), in.data.str$dim[-(1:2)])
+            load.args <- list(dims=dims, dim.names=in.data.str$dim.names, x.in=x.in, y.in=y.in,
+                              x.order=x.order, y.order=y.order,
+                              grid.args=grid.args)
+        } else {
+            stop("** ERROR ** unexpected value in in.data.str$grid.args$grid.type *****")
+        }
+        return(load.args)
+    }
+    load.args <- get.loadArgs(files.names,
+                              lon.range,
+                              lat.range,
+                              rlon.range,
+                              rlat.range)
 
-
-
-
-
-
-
-
-
-
+    ## Output array: get dimension, create
+    nruns <- length(files.names)
+    ntimesteps.file <- ifelse(any(load.args$dim.names == "T"),
+                              load.args$dims[load.args$dim.names == "T"],
+                              1)
+    nfiles.per.run <- unique(sapply(files.names, length))
+    if (length(nfiles.per.run) > 1) stop("** ERROR ** not always the same number of files *****")
+    ntimesteps <- ntimesteps.file*nfiles.per.run
+    dim.out <- c(load.args$dims[load.args$dim.names != "T"], ntimesteps, nruns)
+    ts.starts <- seq(1, by=ntimesteps.file, length.out=nfiles.per.run)
+    ts.inds <- lapply(ts.starts, seq, length.out=ntimesteps.file)
+    data.out <- array(dim=dim.out)
     
-    
-
-    ## load generic dimension and grid information and check
-    source(file.path(r.infos.path, "cpdn.dims.R"))
-    source(file.path(r.infos.path, "degree.adjustRange.R"))
-    if (!rcm) {
-        dims.gcm <- cpdn.dims("HadAM3P")
-        lat.model <- dims.gcm$lat
-        lon.model <- dims.gcm$lon
-        if (any(abs(x$vals-lon.model) > abs(mean(diff(lon.model))/10))) stop("** ERROR ** unexpected 'lon' dimension *****")
-        if (any(abs(y$vals-lat.model) > abs(mean(diff(lat.model))/10))) stop("** ERROR ** unexpected 'lat' dimension *****")
-        
-        if (missing(lon.range) | missing(lat.range)) {
-            if (!(missing(rlon.range) & missing(rlat.range))) {
-                stop("** ERROR ** RCM=F but only rotated coordinates range is specified *****")
+    ## load data
+    for (r in 1:nruns) {
+        for (m in 1:nfiles.per.run) {
+            if (!file.exists(files.names[[r]][m])) next
+            ## load a data sample grid information
+            nc <- nc_open(files.names[[r]][m])
+            ## data size
+            if (!all(diff(which(load.args$x.in)) ==1)) {
+                stop("** ERROR ** lon or rlon not continuousl")
             }
-            lon.in <- 1:length(lon.model)
-            lat.in <- 1:length(lat.model)
-        } else {
-            lon.in <- (findInterval(lon.model, lon.range) == 1)
-            lat.in <- (findInterval(lat.model, lat.range) == 1)
-        }
-        lon.out <- lon.model[lon.in]
-        if (!all(lon.out == cummax(lon.out))) {
-            stop("** only works for continuous longitude in GCM **")
-        }
-        lat.out <- lat.model[lat.in]
-        invlat <- !all(lat.out == cummax(lat.out))
-        templat <- if (invlat) rev(lat.out) else lat.out
-        nlon <- sum(lon.in)
-        nlat <- sum(lat.in)
-    } else if (is.na(region)) {
-        warning("** no specific region information **")
-    } else {
-        dims.rcm <- cpdn.dims(paste("HadRM3P", region, sep="_"))
-        lon.model <- dims.rcm$rlon
-        lat.model <- dims.rcm$rlat
-        if (missing(rlon.range) | missing(rlat.range)) {
-            if (!(missing(lon.range) & missing(lat.range))) {
-                stop("** ERROR ** RCM=T but only non-rotated coordinates range specified *****")
+            dat <- ncvar_get(nc, var,
+                             start=c(which(load.args$x.in)[1], which(load.args$y.in)[1],1,1),
+                             count=c(sum(load.args$x.in), sum(load.args$y.in),-1, -1))
+            if (length(dim.out) == 4) {
+                if (length(ts.inds[[m]]) == 1) {
+                    data.out[,,ts.inds[[m]], r] <- dat[load.args$x.order,
+                                                       load.args$y.order]
+                } else {
+                    data.out[,,ts.inds[[m]], r] <- dat[load.args$x.order,
+                                                       load.args$y.order, ]
+                }
+            } else if (length(dim.out) == 5) {
+                if (length(ts.inds[[m]]) == 1) {
+                    data.out[,,,ts.inds[[m]], r] <- dat[load.args$x.order,
+                                                       load.args$y.order, ]
+                } else {
+                    data.out[,,,ts.inds[[m]], r] <- dat[load.args$x.order,
+                                                       load.args$y.order, , ]
+                }
+            } else {
+                stop("** ERROR ** dimension of output data unexpected *****")
             }
-            lon.in <- rep(TRUE, length(lon.model))
-            lat.in <- rep(TRUE, length(lat.model))
-        } else {
-            lon.in <- (findInterval(lon.model, rlon.range) == 1)
-            lat.in <- (findInterval(lat.model, rlat.range) == 1)
         }
-        lon.out <- lon.model[lon.in]
-        lat.out <- lat.model[lat.in]
-        invlat <- !all(lat.out == cummax(lat.out))
-        rlat <- if (invlat) rev(lat.out) else lat.out
-        nlon <- sum(lon.in)
-        nlat <- sum(lat.in)
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-    ## get dimensions and file name
-    source(file.path(r.infos.path, "cpdn.dims.R"))
-    source(file.path(r.infos.path, "degree.adjustRange.R"))
-    if (!rcm) {
-        fil <- "ma.pc"
-        dims.gcm <- cpdn.dims("HadAM3P")
-        lat.model <- dims.gcm$lat
-        if (missing(lon.range) | missing(lat.range)) {
-            if (!(missing(rlon.range) & missing(rlat.range))) {
-                stop("** ERROR ** RCM=F but only rotated coordinates range is specified *****")
-            }
-            lon.in <- 1:length(lon.model)
-            lat.in <- 1:length(lat.model)
-        } else {
-            lon.in <- (findInterval(lon.model, lon.range) == 1)
-            lat.in <- (findInterval(lat.model, lat.range) == 1)
-        }
-        lon.out <- lon.model[lon.in]
-        if (!all(lon.out == cummax(lon.out))) {
-            stop("** only works for continuous longitude in GCM **")
-        }
-        lat.out <- lat.model[lat.in]
-        invlat <- !all(lat.out == cummax(lat.out))
-        templat <- if (invlat) rev(lat.out) else lat.out
-        nlon <- sum(lon.in)
-        nlat <- sum(lat.in)
-        data.out <- array(dim=c(nlon, nlat, length(months)))
-        data.out <- put.atts(to=data.out,
-                             atts=list(lon=lon.out,
-                                 lat=templat,
-                                 grid.type=dims.gcm$grid.type))
-    } else if (daily) {
-        stop("** ERROR ** only for GCM or monthly in this script *****")
-        fil <- "ga.pd"
-    } else {
-        fil <- "ga.pe"
-        dims.rcm <- cpdn.dims(paste("HadRM3P", region, sep="_"))
-        lon.model <- dims.rcm$rlon
-        lat.model <- dims.rcm$rlat
-        if (missing(rlon.range) | missing(rlat.range)) {
-            if (!(missing(lon.range) & missing(lat.range))) {
-                stop("** ERROR ** RCM=T but only non-rotated coordinates range specified *****")
-            }
-            lon.in <- rep(TRUE, length(lon.model))
-            lat.in <- rep(TRUE, length(lat.model))
-        } else {
-            lon.in <- (findInterval(lon.model, rlon.range) == 1)
-            lat.in <- (findInterval(lat.model, rlat.range) == 1)
-        }
-        lon.out <- lon.model[lon.in]
-        lat.out <- lat.model[lat.in]
-        invlat <- !all(lat.out == cummax(lat.out))
-        rlat <- if (invlat) rev(lat.out) else lat.out
-        nlon <- sum(lon.in)
-        nlat <- sum(lat.in)
-        
-        data.out <- array(dim=c(nlon, nlat, length(months)))
-        data.out <- put.atts(to=data.out,
-                             atts=list(rlon=lon.out,
-                                 rlat=rlat,
-                                 plon=dims.rcm$plon,
-                                 plat=dims.rcm$plat,
-                                 lon = dims.rcm$lon[lon.in, rev(which(lat.in))],
-                                 lat = dims.rcm$lat[lon.in, rev(which(lat.in))],
-                                 grid.type=dims.rcm$grid.type))
     }
 
-    ## loop on months
-    for (m in 1:length(months)) {
-        ii <- ifelse(months[m]==12, 1, 2)
-        ## file name
-        file.name <- paste0(umid, fil, dec[ii], un[ii], tolower(month.abb[months[m]]), ".nc")
-        file.in <- file.path(path.in, file.name)
-        
-        ## load data and dimensions
-        if (!file.exists(file.in)) next
-        nc <- nc_open(file.in)
-#        lon <- ncvar_get(nc, ifelse(rcm, "x", "longitude0"))
-        lon <- ncvar_get(nc,  "longitude0")
-        if (any(abs(lon-lon.model) > abs(mean(diff(lon.model))/10))) stop("** ERROR ** unexpected 'lon' dimension *****")
-        lat <- ncvar_get(nc, "latitude0")
-        if (any(abs(lat-lat.model) > abs(mean(diff(lat.model))/10))) stop("** ERROR ** unexpected 'lat' dimension *****")
-        dat <- ncvar_get(nc, var,
-                         start=c(lon.in[1], lat.in[1],1,1),
-                         count=c(length(lon.in), length(lat.in),-1, -1))
-        nc_close(nc)
-        if (invlat) {
-            data.out[,nlat:1,m] <- dat
-        } else {
-            data.out[,,m] <- dat
-        }
-    }
-    
-    attr(data.out, "month") <- months
 
+    ## Put attributes
+    data.out <- put.atts(to=data.out, atts=load.args$grid.args)
+    attr(data.out, "umid") <- paths.in$umid
+
+    ## done
     return(data.out)
 }
 

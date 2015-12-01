@@ -11,10 +11,10 @@ decade.letter <- function(x) {
         source(file.path(r.infos.path, "decade.letter.R"))
     }
 
-    if (is.numeric(x) | nchar(x)==4) {
+    if (is.numeric(x) | all(nchar(x)==4)) {
         decade <- floor((as.numeric(x)-1900)/10)+1
         output <- letters[decade]
-    } else if (nchar(x) == 1) {
+    } else if (all(nchar(x) == 1)) {
         decade <- which(letters==x)
         output <- (decade-1)*10+1900
     } else {

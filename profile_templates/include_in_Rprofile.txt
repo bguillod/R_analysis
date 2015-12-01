@@ -52,7 +52,6 @@ source(file.path(r.infos.path, "save.plot.args.R"))
 source(file.path(r.infos.path, "load.func.args.R"))
 
 rprofile.vars <- ls()
-rprofile.vars <- ls()
 
 print("The following variables have been loaded from ~/.Rprofile (are also listed anytime in 'rprofile.vars' :")
 print(rprofile.vars)
