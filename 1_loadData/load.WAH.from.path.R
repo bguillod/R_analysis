@@ -1,13 +1,13 @@
 load.WAH.from.path <- function(paths.in,
                                var,
                                months = "all",
+                               daily = F,
+                               rcm=F,
+                               region=NA,
                                lon.range,
                                lat.range,
                                rlon.range,
-                               rlat.range,
-                               daily = F,
-                               rcm=F,
-                               region=NA) {# e.g. region="eu_50km"
+                               rlat.range) {# e.g. region="eu_50km"
 
     ## ---------------------------------------------------------------------
     ## ---------------------------------------------------------------------
@@ -21,6 +21,7 @@ load.WAH.from.path <- function(paths.in,
     library(plotmap)
     
     if (FALSE) {
+        source(file.path(loadData.path, "load.WAH.from.path.R"))
         
         source(file.path(loadData.path, "get.list.files.from.path.R"))
         files.data.path <- "/data/ouce-cpdn/nmassey/wah_data/OSTIA_global/2011"
@@ -29,11 +30,16 @@ load.WAH.from.path <- function(paths.in,
 
         paths.in <- test.raw
         var <- "field16"
+        var <- "field8_1"
         months <- "all"
         daily <- FALSE
-        rcm <- TRUE
+        rcm <- FALSE
         region <- NA
+
+        data.neil <- load.WAH.from.path(test.neil[1:5,],var,months,daily,rcm)
         
+        data.raw <- load.WAH.from.path(test.raw[1:5,],var,months,daily,rcm)
+        raw
     }
 
     cpdn.data.type <- attr(paths.in, "cpdn.data.type")
@@ -88,7 +94,8 @@ load.WAH.from.path <- function(paths.in,
         y <- nc.get.dim.for.axis(nc, var, "Y")
         z <- nc.get.dim.for.axis(nc, var, "Z")
         t <- nc.get.dim.for.axis(nc, var, "T")
-        if (length(dim(dat)) != (2+!is.na(z[1])+!(t$len==1))) stop("** ERROR ** no 'z' coordinate but more than 3 dimensions *****")
+        ndims.expected <- ifelse(is.na(z[1]), 2+!(t$len==1), 2+!(z$len==1)+!(t$len==1))
+        if (length(dim(dat)) != ndims.expected) stop("** ERROR ** no 'z' coordinate but more than 3 dimensions *****")
         dim.names <- c("X", "Y", "Z", "T")[c(TRUE, TRUE, !is.na(z[1]), !(t$len==1))]
         ## rotated grid?
         grid.mapping <- ncatt_get(nc, var, "grid_mapping")
@@ -173,9 +180,9 @@ load.WAH.from.path <- function(paths.in,
                 x.in <- (findInterval(in.data.str$x, lon.range) == 1)
                 y.in <- (findInterval(in.data.str$y, lat.range) == 1)
             }
-            lon.out <- in.data.str$x[x.in]
+            lon.out <- degree.adjustRange(in.data.str$x[x.in],range.out=c(-180,180))
             lat.out <- in.data.str$y[y.in]
-            x.order <- order(degree.adjustRange(lon.out,range.out=c(-180,180)))
+            x.order <- order(lon.out)
             y.order <- order(lat.out)
             lon.out <- lon.out[x.order]
             lat.out <- lat.out[y.order]
