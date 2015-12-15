@@ -3,8 +3,10 @@ my.map.plot <- function(z,x,y,
                         database="world",
                         ...) {
 
+    source(file.path(r.generics.path, "4_mapFuncs/my.image.plot.R"))
+
     if (FALSE) {
-        source(file.path(r.generics.path, "4_mapFuncs/my.image.plot.R"))
+        source(file.path(r.generics.path, "4_mapFuncs/my.map.plot.R"))
     }
 
     ## if (!is.null(grid.atts$grid.type)) {
@@ -20,6 +22,8 @@ my.map.plot <- function(z,x,y,
         if (is.null(y)) y <- 1:dim(z)[2]
     }
 
+    if (missing(grid.atts)) grid.atts <- list(grid.type="lonlat",
+                                              lon=x,lat=y)
     my.image.plot(z,x,y, ...)
     
     ## make map boundaries

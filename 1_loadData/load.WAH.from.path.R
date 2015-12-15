@@ -83,9 +83,12 @@ load.WAH.from.path <- function(paths.in,
     files.names <- get.files.names(paths.in, var=var, months=months, daily=daily, rcm=rcm, cpdn.data.type=cpdn.data.type)
 
 
-    get.data.file.str <- function(file.in,
+    get.data.file.str <- function(files.in,
                              var) {
+        print(files.in)
+        print(which(file.exists(files.in)))
         ## load a data sample grid information
+        file.in <- files.in[which(file.exists(files.in))[1]]
         nc <- nc_open(file.in)
         ## data size
         dat <- ncvar_get(nc, var)
@@ -130,14 +133,17 @@ load.WAH.from.path <- function(paths.in,
     ## if (rcm & data.str$grid.args$grid.type!="rotpol") stop("** ERROR ** region but grid type is not rotpol *****")
 
 
-
-    get.loadArgs <- function(files.names,
+    get.loadArgs <- function(files.name,
                              lon.range,
                              lat.range,
                              rlon.range,
                              rlat.range) {
         ## data shape in files
-        in.data.str <- get.data.file.str(files.names[[1]][1], var)
+        ## success <- FALSE
+        ## while(!success) {
+        ##     tryCatch(
+        ##     in.data.str <- get.data.file.str(files.names[[1]], var)
+        ## }
         if (rcm & in.data.str$grid.args$grid.type!="rotpol") stop("** ERROR ** region but grid type is not rotpol *****")
         ## needed functions
         source(file.path(r.infos.path, "degree.adjustRange.R"))
@@ -197,7 +203,7 @@ load.WAH.from.path <- function(paths.in,
         }
         return(load.args)
     }
-    load.args <- get.loadArgs(files.names,
+    load.args <- get.loadArgs(files.names[[1]],
                               lon.range,
                               lat.range,
                               rlon.range,

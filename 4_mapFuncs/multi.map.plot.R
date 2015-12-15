@@ -1,5 +1,5 @@
 multi.map.plot <- function(z, x, y,
-                           plot.inds=ifelse(is.list(z), length(z), dim(z)[3]),
+                           plot.inds,
                            titles=rep("", length(plot.inds)), nrows, col=tim.colors, breaks,
                            file.out=NULL, width=7, height=7,
                            map.database="world", legend.name="",
@@ -17,17 +17,21 @@ multi.map.plot <- function(z, x, y,
     library(geocors)
     library(fields)
 
+    if (missing(plot.inds)) {
+        plot.inds <- if (is.list(z)) 1:length(z) else 1:(dim(z)[3])
+    }
+
+
     ## convert z to a list
     if (!is.list(z)) {
         if (length(dim(z))==3) {
             z.old <- z
-            temp <- attributes(z)
+            temp <- get.atts(z)
             z <- list()
             for (i in 1:length(plot.inds)) {
                 z[[i]] <- z.old[,,plot.inds[i]]
-                temp$dim <- dim(z[[i]])
-                attributes(z[[i]]) <- temp
-                
+#                temp$dim <- dim(z[[i]])
+                z[[i]] <- put.atts(to=z[[i]], temp)
             }
             nmaps <- i
         } else {
@@ -36,6 +40,7 @@ multi.map.plot <- function(z, x, y,
     } else {
         nmaps <- min(c(length(z), length(plot.inds)))
     }
+    print(str(z))
 
     ## get X and Y dimensions
     if (missing(x)) {
@@ -112,6 +117,7 @@ multi.map.plot <- function(z, x, y,
         do.call(layout, layout.args)
         par(mar=c(0.5,0.5,2,0.5))
         for (i in 1:nmaps) {
+            print(str(z[[i]]))
             do.call(my.image.plot, c(list(z=z[[i]], main=titles[i]), plot.args))
             lines(map.data)
         }
