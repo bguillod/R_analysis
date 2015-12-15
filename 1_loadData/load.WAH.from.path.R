@@ -133,12 +133,13 @@ load.WAH.from.path <- function(paths.in,
     ## if (rcm & data.str$grid.args$grid.type!="rotpol") stop("** ERROR ** region but grid type is not rotpol *****")
 
 
-    get.loadArgs <- function(files.name,
+    get.loadArgs <- function(files.names,
                              lon.range,
                              lat.range,
                              rlon.range,
                              rlat.range) {
         ## data shape in files
+        in.data.str <- get.data.file.str(files.names[[1]][1], var)
         ## success <- FALSE
         ## while(!success) {
         ##     tryCatch(
@@ -203,7 +204,7 @@ load.WAH.from.path <- function(paths.in,
         }
         return(load.args)
     }
-    load.args <- get.loadArgs(files.names[[1]],
+    load.args <- get.loadArgs(files.names,
                               lon.range,
                               lat.range,
                               rlon.range,
