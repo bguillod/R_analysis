@@ -40,7 +40,6 @@ multi.map.plot <- function(z, x, y,
     } else {
         nmaps <- min(c(length(z), length(plot.inds)))
     }
-    print(str(z))
 
     ## get X and Y dimensions
     if (missing(x)) {
@@ -117,7 +116,6 @@ multi.map.plot <- function(z, x, y,
         do.call(layout, layout.args)
         par(mar=c(0.5,0.5,2,0.5))
         for (i in 1:nmaps) {
-            print(str(z[[i]]))
             do.call(my.image.plot, c(list(z=z[[i]], main=titles[i]), plot.args))
             lines(map.data)
         }
