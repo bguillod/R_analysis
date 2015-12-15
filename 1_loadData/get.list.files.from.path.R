@@ -103,10 +103,15 @@ c
     }
     is.nc <- substr(test.content, nchar(test.content)-2, nchar(test.content)) == ".nc"
     is.umid <- substr(test.content, 1,4) == attr(test.content, "umid")
-    is.year.ok <- substr(test.content, 10,11) == paste0(decade.letter(as.numeric(attr(test.content, "year"))), as.numeric(substr(as.character(attr(test.content, "year")), 4, 4))) |
-        substr(test.content, 10,11) == paste0(decade.letter(as.numeric(attr(test.content, "year"))+1), as.numeric(substr(as.character(attr(test.content, "year")), 4, 4))+1)
+    year.dec <- paste0(decade.letter(as.numeric(attr(test.content, "year"))),
+                       as.numeric(substr(as.character(attr(test.content, "year")), 4, 4)))
+    year.next <- as.character(as.numeric(attr(test.content, "year"))+1)
+    year.next <- paste0(decade.letter(as.numeric(attr(test.content, "year"))+1),
+                        substr(year.next, nchar(year.next), nchar(year.next)))
+    is.year.ok <- substr(test.content, 10,11) == year.dec |
+        substr(test.content, 10,11) == year.next
     is.zip <- substr(test.content, nchar(test.content)-3, nchar(test.content)) == ".zip"
-    if (all(test.content %in% c("ga.pd", "ga.pe", "ma.pc"))) {
+    if (all(test.content %in% c("ga.pd", "ga.pe", "ma.pc", "track_out"))) {
         cpdn.data.type <- "neil"
         
     } else if (all((is.nc & is.umid & is.year.ok) | is.zip)) {
