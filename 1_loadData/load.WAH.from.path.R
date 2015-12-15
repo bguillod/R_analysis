@@ -85,8 +85,6 @@ load.WAH.from.path <- function(paths.in,
 
     get.data.file.str <- function(files.in,
                              var) {
-        print(files.in)
-        print(which(file.exists(files.in)))
         ## load a data sample grid information
         file.in <- files.in[which(file.exists(files.in))[1]]
         nc <- nc_open(file.in)
