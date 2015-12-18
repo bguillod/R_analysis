@@ -2,7 +2,7 @@ multi.map.plot <- function(z, x, y,
                            plot.inds,
                            titles=rep("", length(plot.inds)), nrows, col=tim.colors, breaks,
                            file.out=NULL, width=7, height=7,
-                           map.database="world", legend.name="",
+                           map.database="world", map.interior=TRUE, legend.name="",
                            ...) {
     ## -------------------------------------------------------------------------------------
     ## multi.plot.map(mats, titles, nrows, col, breaks, file.out, width=7, height=7, ...) 
@@ -73,6 +73,8 @@ multi.map.plot <- function(z, x, y,
         }
     } else {
         ncols <- ceiling(nmaps/nrows)
+        miss.pan <- nrows*ncols-nmaps
+        mats <- c(1:nmaps, rep(nmaps+2, miss.pan), rep(nmaps+1, ncols))
     }
 
     ## define figure dimensions
@@ -112,7 +114,7 @@ multi.map.plot <- function(z, x, y,
         plot.args <- c(legend.args, list(x=x, y=y, use.plt=FALSE, add.legend=FALSE), list(...))
         grid.atts <- get.grid.atts(z[[1]])
         source(file.path(mapFuncs.path, "map.add.R"))
-        map.data <- map.add(grid.atts, database=map.database, add=FALSE)
+        map.data <- map.add(grid.atts, database=map.database, add=FALSE, interior=map.interior)
         do.call(layout, layout.args)
         par(mar=c(0.5,0.5,2,0.5))
         for (i in 1:nmaps) {
