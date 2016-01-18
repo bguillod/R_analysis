@@ -27,7 +27,23 @@ subset.region <- function(obj, to) {
         ## this does not work: obj.sub <- apply(obj, 3:length(dim(obj)), function(a) a[rlon.in, rlat.in, drop=FALSE])
         obj.sub <- put.atts(obj.sub, atts=atts.obj)
     } else if (atts.obj$grid.type == "lonlat") {
-        stop("** ERROR ** the subsetting has not yet been done for grid.type=='lonlat' *****")
+        if (any(names(to) != paste(c("lon", "lat"), "range", sep="."))) stop("** ERROR ** 'to' is not a lon and lat range but grid.type is 'lonlat' *****")
+        if (!all(diff(atts.obj$lon) > 0)) stop("** ERROR ** lon is not increasing *****")
+        if (!all(diff(atts.obj$lat) > 0)) stop("** ERROR ** lat is not increasing *****")
+        prec.dec <- min(abs(diff(atts.obj$lon)))/10
+        lon.in <- (atts.obj$lon < to$lon.range[2]+prec.dec) & (atts.obj$lon > to$lon.range[1]-prec.dec)
+        lat.in <- (atts.obj$lat < to$lat.range[2]+prec.dec) & (atts.obj$lat > to$lat.range[1]-prec.dec)
+        atts.obj$lon <- atts.obj$lon[lon.in]
+        atts.obj$lat <- atts.obj$lat[lat.in]
+        if (ndims == 3) {
+            obj.sub <- obj[lon.in, lat.in,]
+        } else if (ndims == 4) {
+            obj.sub <- obj[lon.in, lat.in,,]
+        } else {
+            stop("** ERROR ** ndim(obj)>4 (could be easily adapted in script) *****")
+        }
+        ## this does not work: obj.sub <- apply(obj, 3:length(dim(obj)), function(a) a[lon.in, lat.in, drop=FALSE])
+        obj.sub <- put.atts(obj.sub, atts=atts.obj)
     } else {
         stop("** ERROR ** unexpected value in attribute 'grid.type' *****")
     }

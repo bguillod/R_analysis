@@ -3,7 +3,6 @@ load.WAH.from.path <- function(paths.in,
                                months = "all",
                                daily = F,
                                rcm=F,
-                               region=NA,
                                lon.range,
                                lat.range,
                                rlon.range,
@@ -253,6 +252,7 @@ load.WAH.from.path <- function(paths.in,
             } else {
                 stop("** ERROR ** dimension of output data unexpected *****")
             }
+            nc_close(nc)
         }
     }
 
