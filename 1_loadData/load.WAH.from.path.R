@@ -6,7 +6,8 @@ load.WAH.from.path <- function(paths.in,
                                lon.range,
                                lat.range,
                                rlon.range,
-                               rlat.range) {# e.g. region="eu_50km"
+                               rlat.range,
+                               lonlat.range.filename) {# e.g. region="eu_50km"
 
     ## ---------------------------------------------------------------------
     ## ---------------------------------------------------------------------
@@ -50,7 +51,8 @@ load.WAH.from.path <- function(paths.in,
     if (any(months == "all")) months <- c(12, 1:11)
     
     ## get useful values for file name
-    get.files.names <- function(run.path, var, months, daily, rcm, cpdn.data.type) {
+    get.files.names <- function(run.path, var, months, daily, rcm, cpdn.data.type,
+                                lonlat.range.filename) {
         source(file.path(r.infos.path, "decade.letter.R"))
         ## get basic info
         if (!rcm) {
@@ -64,13 +66,19 @@ load.WAH.from.path <- function(paths.in,
         for (i in 1:nrow(run.path)) {
             file.list[[i]] <- vector(mode="character", length=length(months))
             for (m in 1:length(months)) {
-                year.m <- as.numeric(run.path$year[i])+ifelse(months[m]==12, 0, 1)
+                year.m <- run.path$year[i]
+                year.m <- as.numeric(substr(year.m, 1, 4))+ifelse(months[m]==12, 0, 1)
                 d <- decade.letter(year.m)
                 dy <- paste0(d, substr(year.m, 4, 4))
                 if (cpdn.data.type == "raw") {
                     file.list[[i]][m] <- paste0(run.path$dirs[i], "/", run.path$fnames[i], "/", run.path$umid[i], fil, dy, tolower(month.abb[months[m]]), ".nc")
                 } else if (cpdn.data.type == "neil") {
-                    file.list[[i]][m] <- paste0(run.path$dirs[i], "/", run.path$fnames[i], "/", fil, "/", var, "/", run.path$umid[i], fil, dy, tolower(month.abb[months[m]]), "_", var, ".nc")
+                    if (!missing(lonlat.range.filename)) {
+                        var.fol <- paste0(var, "_W", lonlat.range.filename[1], "_N", lonlat.range.filename[2], "_W", lonlat.range.filename[3], "_N", lonlat.range.filename[4])
+                    } else {
+                        var.fol <- var
+                    }
+                    file.list[[i]][m] <- paste0(run.path$dirs[i], "/", run.path$fnames[i], "/", fil, "/", var.fol, "/", run.path$umid[i], fil, dy, tolower(month.abb[months[m]]), "_", var.fol, ".nc")
                 } else {
                     stop("** ERROR ** unexpected value for 'cpdn.data.type' *****")
                 }
@@ -79,7 +87,7 @@ load.WAH.from.path <- function(paths.in,
         return(file.list)
     }
     
-    files.names <- get.files.names(paths.in, var=var, months=months, daily=daily, rcm=rcm, cpdn.data.type=cpdn.data.type)
+    files.names <- get.files.names(paths.in, var=var, months=months, daily=daily, rcm=rcm, cpdn.data.type=cpdn.data.type, lonlat.range.filename=lonlat.range.filename)
 
 
     get.data.file.str <- function(files.in,
@@ -95,8 +103,13 @@ load.WAH.from.path <- function(paths.in,
         z <- nc.get.dim.for.axis(nc, var, "Z")
         t <- nc.get.dim.for.axis(nc, var, "T")
         ndims.expected <- ifelse(is.na(z[1]), 2+!(t$len==1), 2+!(z$len==1)+!(t$len==1))
-        if (length(dim(dat)) != ndims.expected) stop("** ERROR ** no 'z' coordinate but more than 3 dimensions *****")
-        dim.names <- c("X", "Y", "Z", "T")[c(TRUE, TRUE, !is.na(z[1]), !(t$len==1))]
+        if (length(dim(dat)) == ndims.expected) {
+            dim.names <- c("X", "Y", "Z", "T")[c(TRUE, TRUE, !is.na(z[1]), !(t$len==1))]
+        } else {
+            warning("** ERROR ** no 'z' coordinate but more than 3 dimensions - the additional dimension is pretended to be 'z' *****")
+            z <- list(TRUE, vals=NA)
+            dim.names <- c("X", "Y", "Z", "T")[c(TRUE, TRUE, TRUE, !(t$len==1))]
+        }
         ## rotated grid?
         grid.mapping <- ncatt_get(nc, var, "grid_mapping")
         if (grid.mapping$hasatt) {
@@ -105,12 +118,12 @@ load.WAH.from.path <- function(paths.in,
             grid.type <- "rotpol"
             plat <- ncatt_get(nc,grid.mapping$value, "grid_north_pole_latitude")$value
             plon <- ncatt_get(nc,grid.mapping$value, "grid_north_pole_longitude")$value
-            dat <- nc.get.coordinate.axes(nc, var)
-            lon <- ncvar_get(nc, names(dat)[1])
-            lat <- ncvar_get(nc, names(dat)[2])
+            datc <- nc.get.coordinate.axes(nc, var)
+            lon <- ncvar_get(nc, names(datc)[1])
+            lat <- ncvar_get(nc, names(datc)[2])
             rlon <- x$vals
             rlat <- y$vals
-            rm(dat, grid.mapping)
+            rm(datc, grid.mapping)
             grid.args <- list(grid.type=grid.type, rlon=x$vals, rlat=y$vals, plon=plon, plat=plat, lon=lon, lat=lat)
         } else {
             ## non-rotated grid
@@ -135,6 +148,7 @@ load.WAH.from.path <- function(paths.in,
                              lat.range,
                              rlon.range,
                              rlat.range) {
+
         ## data shape in files
         in.data.str <- get.data.file.str(files.names[[1]][1], var)
         ## success <- FALSE
@@ -224,7 +238,7 @@ load.WAH.from.path <- function(paths.in,
     for (r in 1:nruns) {
         for (m in 1:nfiles.per.run) {
             if (!file.exists(files.names[[r]][m])) next
-            ## load a data sample grid information
+            ## load data
             nc <- nc_open(files.names[[r]][m])
             ## data size
             if (!all(diff(which(load.args$x.in)) ==1)) {

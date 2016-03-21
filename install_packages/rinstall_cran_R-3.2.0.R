@@ -12,7 +12,7 @@ destdir <- file.path(install.path, "cran_pkgs")
 
 already.pkgs <- c("abind", "akima", "fields", "fitdistrplus", "gdata", "lattice", "lmomco", "manipulate", "mapdata", "mapproj", "maps", "ncdf4", "ncdf4.helpers", "PCICt", "SCI", "spam", "xts", "zoo", "maptools", "sp", "rgdal", "rgeos", "optparse", "spacetime")
 
-new.pkgs <- c()
+new.pkgs <- c("XML")
 
 
 
@@ -24,7 +24,7 @@ config.args <- NULL
 dependencies.install <- c("Depends", "Imports", "LinkingTo")
 
 ## INSTALL CRAN PACKAGES
-for (i in 22:length(new.pkgs)) {
+for (i in 1:length(new.pkgs)) {
     if (is.null(config.args)) {
         tryCatch({install.packages(new.pkgs[i],
                                    destdir=destdir,
