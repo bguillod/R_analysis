@@ -2,6 +2,7 @@ map.add <- function(grid.atts, database="world", interior=TRUE, add=TRUE, ...) {
 
     ## get grid pars
     library(plotmap)
+    library(maps)
     if (!is.list(grid.atts)) grid.atts <- get.grid.atts(grid.atts)
     if (is.null(grid.atts)) stop("** ERROR ** grid.atts not recognized *****")
 
@@ -50,7 +51,7 @@ map.add <- function(grid.atts, database="world", interior=TRUE, add=TRUE, ...) {
         if (all(lonlat.range == c(0, 360))) database <- "world2"
     }
 
-    map.data <- map(plot=F, xlim=lonlim, ylim=latlim, database=database, interior=interior)
+    map.data <- maps::map(plot=F, xlim=lonlim, ylim=latlim, database=database, interior=interior)
     if (grid.atts$grid.type == "rotpol") {
             map.data.na <- is.na(map.data$x)
             map.data.temp <- lonlat2rotpol(map.data$x[!map.data.na], map.data$y[!map.data.na], plon, plat)
