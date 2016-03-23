@@ -60,7 +60,7 @@ map.add <- function(grid.atts, database="world", interior=TRUE, add=TRUE, ...) {
             map.data <- map.data.rot
     }
     source(file.path(r.infos.path, "degree.adjustRange.R"))
-    print(x.range)
+    #print(x.range)
     map.data$x <- degree.adjustRange(map.data$x, x.range)
     if (add) {
         lines(map.data, ...)

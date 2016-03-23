@@ -36,6 +36,12 @@ c
 
     ## what is in the input dir? Years or runs?
     fnames <- list.dirs(files.data.path, recursive=FALSE, full.names=FALSE)
+    if (length(fnames) == 0) {
+        print("** ERROR ** directory is empty:")
+        print(files.data.path)
+        stop("** ERROR ** directory 'files.data.path' does not contain any files or folder *****")
+    }
+
     if (all(nchar(fnames) == 4)) {
         years.subdir <- TRUE
         years.avail <- fnames

@@ -93,7 +93,18 @@ load.WAH.from.path <- function(paths.in,
     get.data.file.str <- function(files.in,
                              var) {
         ## load a data sample grid information
-        file.in <- files.in[which(file.exists(files.in))[1]]
+        hasfile <- FALSE
+        for (i in 1:length(files.in)) {
+            if (any(file.exists(files.in[[i]]))) {
+                file.in <- files.in[[i]][which(file.exists(files.in[[i]]))[1]]
+                hasfile <- TRUE
+                break
+            }
+        }
+        if (!hasfile) {
+            return(NULL)
+        }
+        #file.in <- files.in[which(file.exists(files.in))[1]]
         nc <- nc_open(file.in)
         ## data size
         dat <- ncvar_get(nc, var)
@@ -150,7 +161,10 @@ load.WAH.from.path <- function(paths.in,
                              rlat.range) {
 
         ## data shape in files
-        in.data.str <- get.data.file.str(files.names[[1]][1], var)
+        in.data.str <- get.data.file.str(files.names, var)
+        if (is.null(in.data.str)) {
+            return(NULL)
+        }
         ## success <- FALSE
         ## while(!success) {
         ##     tryCatch(
@@ -220,6 +234,12 @@ load.WAH.from.path <- function(paths.in,
                               lat.range,
                               rlon.range,
                               rlat.range)
+
+    ## check that any data is valid
+    if (is.null(load.args)) {
+        print("** no data can be loaded - returning NULL **")
+        return(NULL)
+    }
 
     ## Output array: get dimension, create
     nruns <- length(files.names)
