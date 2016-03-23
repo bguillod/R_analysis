@@ -3,6 +3,7 @@ multi.map.plot <- function(z, x, y,
                            titles=rep("", length(plot.inds)), nrows, col=tim.colors, breaks,
                            file.out=NULL, width=7, height=7,
                            map.database="world", map.interior=TRUE, legend.name="",
+                           axis.args,
                            ...) {
     ## -------------------------------------------------------------------------------------
     ## multi.plot.map(mats, titles, nrows, col, breaks, file.out, width=7, height=7, ...) 
@@ -33,6 +34,7 @@ multi.map.plot <- function(z, x, y,
 #                temp$dim <- dim(z[[i]])
                 z[[i]] <- put.atts(to=z[[i]], temp)
             }
+            z[[i]] <- put.atts(to=z, temp)
             nmaps <- i
         } else {
             stop("** ERROR ** 'z' should be a list of matrices to plot *****")
@@ -43,12 +45,12 @@ multi.map.plot <- function(z, x, y,
 
     ## get X and Y dimensions
     if (missing(x)) {
-        x <- get.grid.atts(z[[1]], what="grid.cors")[[1]]
+        x <- get.grid.atts(z, what="grid.cors")[[1]]
         if (is.null(x)) x <- 1:dim(z)[1]
         
     }
     if (missing(y)) {
-        y <- get.grid.atts(z[[1]], what="grid.cors")[[2]]
+        y <- get.grid.atts(z, what="grid.cors")[[2]]
         if (is.null(y)) y <- 1:dim(z)[2]
     }
 
@@ -112,17 +114,25 @@ multi.map.plot <- function(z, x, y,
         layout.args <- list(mat=matrix(mats, ncol=ncols, nrow=nrows+1, byrow=TRUE), heights=c(rep(3, nrows), 1))
         legend.args <- list(col=col, breaks=breaks)
         plot.args <- c(legend.args, list(x=x, y=y, use.plt=FALSE, add.legend=FALSE), list(...))
-        grid.atts <- get.grid.atts(z[[1]])
+        grid.atts <- get.grid.atts(z)
         source(file.path(mapFuncs.path, "map.add.R"))
-        map.data <- map.add(grid.atts, database=map.database, add=FALSE, interior=map.interior)
+        map.data <- list()
+        for (i in 1:length(map.database)) {
+            map.data[[i]] <- map.add(grid.atts, database=map.database[[i]], add=FALSE, interior=map.interior)
+        }
         do.call(layout, layout.args)
         par(mar=c(0.5,0.5,2,0.5))
         for (i in 1:nmaps) {
             do.call(my.image.plot, c(list(z=z[[i]], main=titles[i]), plot.args))
-            lines(map.data)
+            for (j in 1:length(map.database)) {
+                lines(map.data[[j]])
+            }
+        }
+        if (missing(axis.args)) {
+            axis.args <- list(mgp=c(3,0.5,0))
         }
         my.image.plot(z=z[[i]], x=x, y=y, breaks=breaks, col=col, use.plt=FALSE, legend.only=TRUE,
-                      smallplot=c(0.1,0.9,0.5,0.7), axis.args=list(mgp=c(3,0.5,0)),
+                      smallplot=c(0.1,0.9,0.5,0.7), axis.args=axis.args,
                       legend.args=list(text=legend.name, line=0.5), horizontal=TRUE)
         par(mar=c(3,0,2,4))
         if (!is.null(file.out)) dev.off()

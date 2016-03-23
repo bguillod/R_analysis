@@ -13,6 +13,8 @@ my.image.plot <- function(z,x,y, add=FALSE, breaks=NULL, nlevel = 15, col = tim.
                           use.plt = TRUE,
                           ...) {
 
+    library(fields)
+
     if (FALSE) {
         source(file.path(r.generics.path, "4_mapFuncs/my.image.plot.R"))
     }

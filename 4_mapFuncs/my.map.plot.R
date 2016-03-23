@@ -1,6 +1,7 @@
 my.map.plot <- function(z,x,y,
                         grid.atts=get.grid.atts(z),
                         database="world",
+                        lines.args,
                         ...) {
 
     source(file.path(r.generics.path, "4_mapFuncs/my.image.plot.R"))
@@ -28,6 +29,10 @@ my.map.plot <- function(z,x,y,
     
     ## make map boundaries
     source(file.path(mapFuncs.path, "map.add.R"))
-    map.add(grid.atts, database=database)
+    map.args <- list(grid.atts=grid.atts, database=database)
+    map.args <- c(map.args, lines.args)
+    print(map.args)
+    do.call(map.add, map.args)
+#    map.add(grid.atts, database=database, lines.args)
     
 }
