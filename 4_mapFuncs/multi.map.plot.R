@@ -34,7 +34,7 @@ multi.map.plot <- function(z, x, y,
 #                temp$dim <- dim(z[[i]])
                 z[[i]] <- put.atts(to=z[[i]], temp)
             }
-            z[[i]] <- put.atts(to=z, temp)
+            z <- put.atts(to=z, temp)
             nmaps <- i
         } else {
             stop("** ERROR ** 'z' should be a list of matrices to plot *****")
