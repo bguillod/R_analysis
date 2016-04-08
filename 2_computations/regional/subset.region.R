@@ -1,8 +1,17 @@
 
 subset.region <- function(obj, to) {
+
+    ## -------------------------------------------------------------------------------------
+    ## function to subset the domain of an array configured following the geocors conventions
     ## to is a list of the domain to subset on, i.e.:
     ##          either list(rlon.range=c(....), rlat.range=c(....)) for grid.type="rotpol"
     ##          or list(lon.range=c(....), lat.range=c(....)) for grid.type="lonlat"
+    ## -------------------------------------------------------------------------------------
+    
+    if (FALSE) {
+        source(file.path(compute.path, "regional/subset.region.R"))
+    }
+
     if (length(to) != 2) stop("** ERROR ** 'to' should be of length 2 *****")
     atts.obj <- get.atts(obj)
     ndims <- length(dim(obj))
