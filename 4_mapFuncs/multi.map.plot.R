@@ -13,6 +13,11 @@ multi.map.plot <- function(z, x, y,
     ##         -----> maps are plotted by row
     ## -------------------------------------------------------------------------------------
 
+    if (FALSE) {
+        
+        source(file.path(r.generics.path, "4_mapFuncs/multi.map.plot.R"))
+    }
+
     ## load required functions and packages
     source(file.path(r.generics.path, "4_mapFuncs/my.image.plot.R"))
     library(geocors)

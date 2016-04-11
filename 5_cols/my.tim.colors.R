@@ -1,4 +1,9 @@
-my.tim.colors <- function(n, type=1, midcol) {
+my.tim.colors <- function(n, type=1, midcol, rev=FALSE) {
+
+    if (FALSE) {
+        source(file.path(colFuncs.path, "my.tim.colors.R"))
+    }
+    
     if (type == 1) {
         ## type 1
         require(fields)
@@ -50,6 +55,9 @@ my.tim.colors <- function(n, type=1, midcol) {
     }
     if (!missing(midcol) & n%%2 == 1) {
         output[n/2+0.5] <- midcol
+    }
+    if (rev) {
+        output <- rev(output)
     }
     return(output)
 }
