@@ -17,7 +17,7 @@ load.WAH.from.path <- function(paths.in,
     ## get.list.files.from.path
     ## ---------------------------------------------------------------------
     ## ---------------------------------------------------------------------
-
+    warning("** need to fix: get attributes of year and month **")
     require(ncdf4)
     require(ncdf4.helpers)
     library(plotmap)
