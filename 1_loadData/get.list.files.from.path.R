@@ -45,7 +45,7 @@ c
     if (all(nchar(fnames) == 4)) {
         years.subdir <- TRUE
         years.avail <- fnames
-        if (years != "all") {
+        if (all(years != "all")) {
             years.in <- years %in% years.avail
             if (any(!years.in)) stop("** ERROR ** not all requested years are available *****")
             years.in <- years
@@ -74,10 +74,10 @@ c
     fnames <- as.character(file.dirs$fnames)
     fnames.split <- strsplit(fnames, "[_]")
     umids.avail <- sapply(fnames.split, function(v) v[3])
-    years.avail <- sapply(fnames.split, function(v) v[4])
+    years.avail <- sapply(fnames.split, function(v) substr(v[4],1,4))
 
     ## sub-select years and umid
-    if (years == "all") {
+    if (any(years == "all")) {
         years.which.in <- rep(TRUE, length(fnames))
     } else {
         years.which.in <- years.avail %in% years

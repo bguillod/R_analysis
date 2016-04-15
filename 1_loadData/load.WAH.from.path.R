@@ -3,6 +3,8 @@ load.WAH.from.path <- function(paths.in,
                                months = "all",
                                daily = F,
                                rcm=F,
+                               first.avail.month = 12,
+                               n.avail.months = 12,
                                lon.range,
                                lat.range,
                                rlon.range,
@@ -48,10 +50,38 @@ load.WAH.from.path <- function(paths.in,
     }
         
     ## which months?
-    if (any(months == "all")) months <- c(12, 1:11)
+    months.avail <- seq(first.avail.month, length.out=n.avail.months)%%12#c(12, 1:11)
+    months.avail[months.avail == 0] <- 12    
+    years.months.avail <- cumsum(months.avail== 1)
+    if (any(months == "all")) {
+        months.in <- 1:length(months.avail)
+    } else {
+        ## in that it has to be identified
+        months.in <- sapply(months, function(s) which(s==months.avail))
+        if (is.list(months.in)) {
+            months.temp <- months.in
+            m1 <- sapply(months.temp, length)==1
+            months.in <- rep(NA, length=length(months.temp))
+            months.in[m1] <- unlist(months.temp[m1])
+            for (i in which(!m1)) {
+                prev.i <- i-1
+                if ((i-1) %in% which(m1)) {
+                    mon.i <- intersect(months.temp[[i]], months.temp[[i-1]]+1)
+                } else if ((i+1) %in% which(m1)) {
+                    mon.i <- intersect(months.temp[[i]], months.temp[[i+1]]-1)
+                } else {
+                    stop("** ERROR ** months not unambiguous *****")
+                }
+                if (length(mon.i) == 0) stop("** ERROR ** months not unambiguous (2) *****")
+                months.in[i] <- mon.i
+            }
+        }
+    }
+    months <- months.avail[months.in]
     
     ## get useful values for file name
-    get.files.names <- function(run.path, var, months, daily, rcm, cpdn.data.type,
+    get.files.names <- function(run.path, var, months, yearlag.month,
+                                daily, rcm, cpdn.data.type,
                                 lonlat.range.filename) {
         source(file.path(r.infos.path, "decade.letter.R"))
         ## get basic info
@@ -67,7 +97,7 @@ load.WAH.from.path <- function(paths.in,
             file.list[[i]] <- vector(mode="character", length=length(months))
             for (m in 1:length(months)) {
                 year.m <- run.path$year[i]
-                year.m <- as.numeric(substr(year.m, 1, 4))+ifelse(months[m]==12, 0, 1)
+                year.m <- as.numeric(substr(year.m, 1, 4))+yearlag.month[m]
                 d <- decade.letter(year.m)
                 dy <- paste0(d, substr(year.m, 4, 4))
                 if (cpdn.data.type == "raw") {
@@ -87,7 +117,7 @@ load.WAH.from.path <- function(paths.in,
         return(file.list)
     }
     
-    files.names <- get.files.names(paths.in, var=var, months=months, daily=daily, rcm=rcm, cpdn.data.type=cpdn.data.type, lonlat.range.filename=lonlat.range.filename)
+    files.names <- get.files.names(paths.in, var=var, months=months, yearlag.month=years.months.avail[months.in], daily=daily, rcm=rcm, cpdn.data.type=cpdn.data.type, lonlat.range.filename=lonlat.range.filename)
 
 
     get.data.file.str <- function(files.in,
