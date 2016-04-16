@@ -329,7 +329,7 @@ load.WAH.from.path <- function(paths.in,
     ## Put attributes
     data.out <- put.atts(to=data.out, atts=load.args$grid.args)
     attr(data.out, "umid") <- paths.in$umid
-    attr(data.out, "yearmon.data") <- attr(files.names, yearmon.data)
+    attr(data.out, "yearmon.data") <- attr(files.names, "yearmon.data")
 
     ## done
     return(data.out)
