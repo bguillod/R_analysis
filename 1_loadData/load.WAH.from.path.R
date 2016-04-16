@@ -92,12 +92,15 @@ load.WAH.from.path <- function(paths.in,
         } else {
             fil <- "ga.pe"
         }
+        ## get years and month data
+        yearmon.data <- matrix(nrow=nrow(run.path), ncol=length(months))
         file.list <- list()
         for (i in 1:nrow(run.path)) {
             file.list[[i]] <- vector(mode="character", length=length(months))
             for (m in 1:length(months)) {
                 year.m <- run.path$year[i]
                 year.m <- as.numeric(substr(year.m, 1, 4))+yearlag.month[m]
+                yearmon.data[i, m] <- paste(year.m, months[m], sep="-")
                 d <- decade.letter(year.m)
                 dy <- paste0(d, substr(year.m, 4, 4))
                 if (cpdn.data.type == "raw") {
@@ -114,6 +117,8 @@ load.WAH.from.path <- function(paths.in,
                 }
             }
         }
+        yearmon.data <- as.data.frame(cbind(run.path$umid, yearmon.data))
+        attr(file.list, "yearmon.data") <- yearmon.data
         return(file.list)
     }
     
@@ -324,6 +329,7 @@ load.WAH.from.path <- function(paths.in,
     ## Put attributes
     data.out <- put.atts(to=data.out, atts=load.args$grid.args)
     attr(data.out, "umid") <- paths.in$umid
+    attr(data.out, "yearmon.data") <- attr(files.names$yearmon.data)
 
     ## done
     return(data.out)
