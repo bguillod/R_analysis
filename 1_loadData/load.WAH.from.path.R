@@ -17,7 +17,7 @@ load.WAH.from.path <- function(paths.in,
     ## get.list.files.from.path
     ## ---------------------------------------------------------------------
     ## ---------------------------------------------------------------------
-    warning("** need to fix: get attributes of year and month **")
+
     require(ncdf4)
     require(ncdf4.helpers)
     library(plotmap)
@@ -117,7 +117,8 @@ load.WAH.from.path <- function(paths.in,
                 }
             }
         }
-        yearmon.data <- as.data.frame(cbind(run.path$umid, yearmon.data))
+        yearmon.data <- as.data.frame(yearmon.data, stringsAsFactors=FALSE)
+        rownames(yearmon.data) <- run.path$umid
         attr(file.list, "yearmon.data") <- yearmon.data
         return(file.list)
     }
