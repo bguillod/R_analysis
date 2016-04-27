@@ -5,6 +5,7 @@ load.WAH.from.path <- function(paths.in,
                                rcm=F,
                                first.avail.month = 12,
                                n.avail.months = 12,
+                               month.occur = 1,
                                lon.range,
                                lat.range,
                                rlon.range,
@@ -75,6 +76,9 @@ load.WAH.from.path <- function(paths.in,
                 if (length(mon.i) == 0) stop("** ERROR ** months not unambiguous (2) *****")
                 months.in[i] <- mon.i
             }
+        } else if (is.matrix(months.in)) {
+            if (ncol(months.in) != 1) stop("** ERROR ** 'months' case not planned for *****")
+            months.in <- months.in[month.occur, ]
         }
     }
     months <- months.avail[months.in]

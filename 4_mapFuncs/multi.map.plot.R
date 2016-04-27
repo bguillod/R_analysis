@@ -3,7 +3,7 @@ multi.map.plot <- function(z, x, y,
                            titles=rep("", length(plot.inds)), nrows, col=tim.colors, breaks,
                            file.out=NULL, width=7, height=7,
                            map.database="world", map.interior=TRUE, legend.name="",
-                           axis.args,
+                           axis.args, horizontal=TRUE,
                            ...) {
     ## -------------------------------------------------------------------------------------
     ## multi.plot.map(mats, titles, nrows, col, breaks, file.out, width=7, height=7, ...) 
@@ -63,25 +63,26 @@ multi.map.plot <- function(z, x, y,
     if (missing(nrows)) {
         if (nmaps == 1 | is.na(nmaps)) {
             nrows <- ncols <- 1
-            mats <- 1:2
         } else if (nmaps == 30) {
             nrows <- 5
             ncols <- 6
-            mats <- c(1:30, rep(31, ncols))
         } else if (nmaps == 28) {
             nrows <- 5
             ncols <- 6
-            mats <- c(1:28, nmaps+2, nmaps+2, rep(nmaps+1, ncols))
         } else {
             ncols <- ceiling(sqrt(nmaps))
             nrows <- ceiling(nmaps/ncols)
-            miss.pan <- nrows*ncols-nmaps
-            mats <- c(1:nmaps, rep(nmaps+2, miss.pan), rep(nmaps+1, ncols))
         }
     } else {
         ncols <- ceiling(nmaps/nrows)
-        miss.pan <- nrows*ncols-nmaps
-        mats <- c(1:nmaps, rep(nmaps+2, miss.pan), rep(nmaps+1, ncols))
+    }
+    miss.pan <- nrows*ncols-nmaps
+    mats <- c(1:nmaps, rep(nmaps+2, miss.pan))
+    mats <- matrix(mats, ncol=ncols, nrow=nrows, byrow=TRUE)
+    if (horizontal) {
+        mats <- rbind(mats, rep(nmaps+1, ncols))
+    } else {
+        mats <- cbind(mats, rep(nmaps+1, nrows))
     }
 
     ## define figure dimensions
@@ -116,7 +117,11 @@ multi.map.plot <- function(z, x, y,
     if (!is.null(file.out)) ps.print(file=file.out, height=height, width=width)
     ## do plot
     tryCatch({
-        layout.args <- list(mat=matrix(mats, ncol=ncols, nrow=nrows+1, byrow=TRUE), heights=c(rep(3, nrows), 1))
+        if (horizontal) {
+            layout.args <- list(mat=mats, heights=c(rep(3, nrows), 1))
+        } else {
+            layout.args <- list(mat=mats, widths=c(rep(3, ncols), 1))
+        }
         legend.args <- list(col=col, breaks=breaks)
         plot.args <- c(legend.args, list(x=x, y=y, use.plt=FALSE, add.legend=FALSE), list(...))
         grid.atts <- get.grid.atts(z)
@@ -136,9 +141,14 @@ multi.map.plot <- function(z, x, y,
         if (missing(axis.args)) {
             axis.args <- list(mgp=c(3,0.5,0))
         }
+        if (horizontal) {
+            smallplot <- c(0.1,0.9,0.5,0.7)
+        } else {
+            smallplot <- c(0.3,0.5,0.1,0.9)
+        }
         my.image.plot(z=z[[i]], x=x, y=y, breaks=breaks, col=col, use.plt=FALSE, legend.only=TRUE,
-                      smallplot=c(0.1,0.9,0.5,0.7), axis.args=axis.args,
-                      legend.args=list(text=legend.name, line=0.5), horizontal=TRUE)
+                      smallplot=smallplot, axis.args=axis.args,
+                      legend.args=list(text=legend.name, line=0.5, side=ifelse(horizontal, 3, 2)), horizontal=horizontal)
         par(mar=c(3,0,2,4))
         if (!is.null(file.out)) dev.off()
     }, error = function(e) {
