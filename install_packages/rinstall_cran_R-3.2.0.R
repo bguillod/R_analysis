@@ -10,9 +10,9 @@ install.path <- file.path(r.scripts.path, "install_packages")
 owndir <- file.path(install.path, "own_pkgs")
 destdir <- file.path(install.path, "cran_pkgs")
 
-already.pkgs <- c("abind", "akima", "fields", "fitdistrplus", "gdata", "lattice", "lmomco", "manipulate", "mapdata", "mapproj", "maps", "ncdf4", "ncdf4.helpers", "PCICt", "SCI", "spam", "xts", "zoo", "maptools", "sp", "rgdal", "rgeos", "optparse", "spacetime", "XML")
+already.pkgs <- c("abind", "akima", "fields", "fitdistrplus", "gdata", "lattice", "lmomco", "manipulate", "mapdata", "mapproj", "maps", "ncdf4", "ncdf4.helpers", "PCICt", "SCI", "spam", "xts", "zoo", "maptools", "sp", "rgdal", "rgeos", "optparse", "spacetime", "XML", "Hmisc")
 
-new.pkgs <- c("Hmisc")
+new.pkgs <- c("clue")
 
 
 
