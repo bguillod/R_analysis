@@ -1,5 +1,6 @@
 ## load packages that are too needed
-suppressPackageStartupMessages(library("fields"))
+## suppressPackageStartupMessages(library("fields"))
+options(stringsAsFactors = FALSE)
 
 
 ## Override q() to not save by default.
@@ -27,6 +28,11 @@ ps.print.save <- function(file, height, width, save.vars, ...) {
     ps.print(file=file, height=height, width=width, ...)
 }
 
+seq0 <- function(...) {
+    temp <- seq(...)
+    temp <- temp[temp!=0]
+    return(temp)
+}
 
 ## added by bguillod
 ## ----------------- GENERAL PATHS -----------------
@@ -46,6 +52,10 @@ mapFuncs.path <- file.path(r.generics.path, "4_mapFuncs")
 colFuncs.path <- file.path(r.generics.path, "5_cols")
 ## scripts paths - locals
 loadData.localpath <- file.path(r.locals.path, "1_load")
+
+# define data paths (machine-specific)
+
+
 ## load useful functions
 source(file.path(r.infos.path, "save.func.args.R"))
 source(file.path(r.infos.path, "save.plot.args.R"))

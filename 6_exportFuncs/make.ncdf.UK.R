@@ -9,7 +9,7 @@ make.ncdf.UK <- function(data.out,
                          daily=FALSE,
                          times.bnds,
                          calendar,
-                         ref.file=file.path(marius.20CR.data.path, years[1], "monthly", paste0("hadrm3p20CRv2c_pepm_monthly_", years[1], ".nc"))) {
+                         ref.file=file.path(marius.20CR.data.path, 1990, "monthly", paste0("hadrm3p20CRv2c_pepm_monthly_1990.nc"))) {
     
     
     if (FALSE) {
