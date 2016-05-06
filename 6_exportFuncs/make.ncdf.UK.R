@@ -32,12 +32,14 @@ make.ncdf.UK <- function(data.out,
             time.bnds <- as.POSIXct(paste(times, "1 00:00:00", sep="-"), format="%Y-%m-%d %H:%M:%S", tz = "UTC")
             time.bnds <- c(time.bnds, seq.POSIXt(rev(time.bnds)[1], by="1 month", length.out=2)[2])
         } else {
-            stop("** ERROR ** this script is not yet configured for daily data - should be adapted *****")
+            time.bnds <- as.POSIXct(paste(times, "00:00:00"), format="%Y-%m-%d %H:%M:%S", tz = "UTC")
+            time.bnds <- c(time.bnds, seq.POSIXt(rev(time.bnds)[1], by="1 day", length.out=2, tz = "UTC")[2])
         }
     }
     # check arguments
     if (missing(units)) stop("** ERROR ** units has to be given as an input ('' for no unit) *****")
     if (missing(missval)) warning("** no missval given - will use -1.073742e+09 *****")
+    if (!missing(calendar)) stop("** argument calendar not implemented yet - now only for standard calendar *****")
     
     # read in template netcdf file
     nc.ref <- nc_open(ref.file)
@@ -96,6 +98,8 @@ make.ncdf.UK <- function(data.out,
             nc.copy.atts(nc.ref, old_vars[i], nc.new, new_vars[[i]]$name)
         } else if (new_vars[[i]]$name == "rotated_latitude_longitude") {
             nc.copy.atts(nc.ref, old_vars[i], nc.new, new_vars[[i]]$name)
+        } else if (new_vars[[i]]$name == "time") {
+#             nc.copy.atts(nc.ref, old_vars[i], nc.new, new_vars[[i]]$name, exception.list = c("long_name", "units"))
         } else {
             ncvar_put(nc.new, new_vars[[i]]$name, ncvar_get(nc.ref, new_vars[[i]]$name))
             nc.copy.atts(nc.ref, old_vars[i], nc.new, new_vars[[i]]$name)
@@ -103,7 +107,11 @@ make.ncdf.UK <- function(data.out,
     }
     
     for (i in 1:length(new_dims)) { 
+        if (new_dims[[i]]$name == "time") {
+            nc.copy.atts(nc.ref, old_dims[i], nc.new, new_dims[[i]]$name, exception.list = c("units", "long_name"))
+        } else {
         nc.copy.atts(nc.ref, old_dims[i], nc.new, new_dims[[i]]$name)
+        }
     }
     if (!missing(atts.glob)) {
         for (j in 1:nrow(atts.glob)) {
